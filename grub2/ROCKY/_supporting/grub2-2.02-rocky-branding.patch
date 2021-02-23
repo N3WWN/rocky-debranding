@@ -30,7 +30,7 @@ index 74a35e3..a1826be 100644
  %endif
  
  %changelog
-+* Tue Feb 23 2021 Rich Alloway <ralloway@perforce.com> - 2.02-90.el8
++* Tue Feb 23 2021 Rich Alloway <ralloway@perforce.com> - 2.02-90.el8.rocky
 +- Apply Rocky Linux (de)branding changes
 +
  * Tue Nov 03 2020 CentOS Sources <bugs@centos.org> - 2.02-90.el8.centos
