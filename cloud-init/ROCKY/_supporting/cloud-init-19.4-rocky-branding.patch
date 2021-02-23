@@ -1,0 +1,58 @@
+diff --git a/SOURCES/ci-cloud-init.service.tmpl-use-rhel-instead-of-redhat-4.patch b/SOURCES/ci-cloud-init.service.tmpl-use-rhel-instead-of-redhat-4.patch
+index f339ffd..fa93c4e 100644
+--- a/SOURCES/ci-cloud-init.service.tmpl-use-rhel-instead-of-redhat-4.patch
++++ b/SOURCES/ci-cloud-init.service.tmpl-use-rhel-instead-of-redhat-4.patch
+@@ -37,7 +37,7 @@ index 9ad3574..af6d9a8 100644
+  After=networking.service
+  {% endif %}
+ -{% if variant in ["centos", "fedora", "redhat"] %}
+-+{% if variant in ["centos", "fedora", "rhel"] %}
+++{% if variant in ["centos", "fedora", "rhel", "rocky"] %}
+  After=network.service
+  After=NetworkManager.service
+  {% endif %}
+diff --git a/SOURCES/ci-network-Fix-type-and-respect-name-when-rendering-vla.patch b/SOURCES/ci-network-Fix-type-and-respect-name-when-rendering-vla.patch
+index be05fe3..f6b7d5c 100644
+--- a/SOURCES/ci-network-Fix-type-and-respect-name-when-rendering-vla.patch
++++ b/SOURCES/ci-network-Fix-type-and-respect-name-when-rendering-vla.patch
+@@ -99,7 +99,7 @@ index 810b283..4b4ed09 100644
+ +            if iface_name not in supported:
+ +                LOG.info(
+ +                    "Name '%s' for vlan '%s' is not officially supported"
+-+                    "by RHEL. Supported: %s",
+++                    "by Rocky. Supported: %s",
+ +                    iface_name, rdev, ' '.join(supported))
+ +            iface_cfg['PHYSDEV'] = rdev
+  
+@@ -110,7 +110,7 @@ index 810b283..4b4ed09 100644
+  
+  
+ +def _supported_vlan_names(rdev, vid):
+-+    """Return list of supported names for vlan devices per RHEL doc
+++    """Return list of supported names for vlan devices per Rocky doc
+ +    11.5. Naming Scheme for VLAN Interfaces."""
+ +    return [
+ +        v.format(rdev=rdev, vid=int(vid))
+diff --git a/SPECS/cloud-init.spec b/SPECS/cloud-init.spec
+index 00a198a..8efe743 100644
+--- a/SPECS/cloud-init.spec
++++ b/SPECS/cloud-init.spec
+@@ -66,6 +66,7 @@ Patch27: ci-Explicit-set-IPV6_AUTOCONF-and-IPV6_FORCE_ACCEPT_RA-.patch
+ Patch28: ci-net-fix-rendering-of-static6-in-network-config-77.patch
+ # For bz#1916839 - [Azure] Update existing user password RHEL8x [rhel-8.3.0.z]
+ Patch29: ci-DataSourceAzure-update-password-for-defuser-if-exist.patch
++Patch30: cloud-init-19.4-rocky-support.patch
+ 
+ BuildArch:      noarch
+ 
+@@ -249,6 +250,10 @@ fi
+ %config(noreplace) %{_sysconfdir}/rsyslog.d/21-cloudinit.conf
+ 
+ %changelog
++* Tue Feb 23 2021 Rich Alloway <ralloway@perforce.com> - 19.4-11.el8_3.2
++- Apply Rocky Linux (de)branding changes
++- Include Rocky Linux support
++
+ * Tue Jan 26 2021 Miroslav Rezanina <mrezanin@redhat.com> - 19.4-11.el8_3.2
+ - ci-DataSourceAzure-update-password-for-defuser-if-exist.patch [bz#1916839]
+ - Resolves: bz#1916839

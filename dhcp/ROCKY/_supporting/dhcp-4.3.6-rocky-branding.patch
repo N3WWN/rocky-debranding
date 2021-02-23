@@ -1,0 +1,27 @@
+diff --git a/SOURCES/dhcp-errwarn-message.patch b/SOURCES/dhcp-errwarn-message.patch
+index 18f77cf..9234121 100644
+--- a/SOURCES/dhcp-errwarn-message.patch
++++ b/SOURCES/dhcp-errwarn-message.patch
+@@ -14,7 +14,7 @@ diff -up dhcp-4.3.5/omapip/errwarn.c.errwarn dhcp-4.3.5/omapip/errwarn.c
+ +    size_t url_len = 256;
+ +
+ +    url = (char *) malloc(url_len * sizeof(char));
+-+    strcpy(url, "https://bugzilla.redhat.com/");
+++    strcpy(url, "https://bugs.rockylinux.org/");
+ +
+ +    if (!file)
+ +        return url;
+diff --git a/SPECS/dhcp.spec b/SPECS/dhcp.spec
+index b626826..d55cfdc 100644
+--- a/SPECS/dhcp.spec
++++ b/SPECS/dhcp.spec
+@@ -694,6 +694,9 @@ done
+ %endif
+ 
+ %changelog
++* Mon Feb 22 2021 Rich Alloway <ralloway@perforce.com> - 4.3.6-41.el8
++- Apply Rocky Linux (de)branding changes
++
+ * Tue Nov 03 2020 CentOS Sources <bugs@centos.org> - 4.3.6-41.el8.centos
+ - Apply debranding changes
+ 

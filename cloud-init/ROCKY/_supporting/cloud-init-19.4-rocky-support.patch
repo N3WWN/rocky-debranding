@@ -1,0 +1,200 @@
+diff -Npruw cloud-init-19.4.orig/cloudinit/config/cc_ntp.py cloud-init-19.4/cloudinit/config/cc_ntp.py
+--- cloud-init-19.4.orig/cloudinit/config/cc_ntp.py	2019-12-18 15:14:55.000000000 +0000
++++ cloud-init-19.4/cloudinit/config/cc_ntp.py	2021-02-23 15:05:54.537773516 +0000
+@@ -25,7 +25,7 @@ LOG = logging.getLogger(__name__)
+ frequency = PER_INSTANCE
+ NTP_CONF = '/etc/ntp.conf'
+ NR_POOL_SERVERS = 4
+-distros = ['centos', 'debian', 'fedora', 'opensuse', 'rhel', 'sles', 'ubuntu']
++distros = ['centos', 'debian', 'fedora', 'opensuse', 'rhel', 'rocky', 'sles', 'ubuntu']
+ 
+ NTP_CLIENT_CONFIG = {
+     'chrony': {
+diff -Npruw cloud-init-19.4.orig/cloudinit/distros/__init__.py cloud-init-19.4/cloudinit/distros/__init__.py
+--- cloud-init-19.4.orig/cloudinit/distros/__init__.py	2019-12-18 15:14:55.000000000 +0000
++++ cloud-init-19.4/cloudinit/distros/__init__.py	2021-02-23 15:07:08.719987346 +0000
+@@ -36,7 +36,7 @@ ALL_DISTROS = 'all'
+ 
+ OSFAMILIES = {
+     'debian': ['debian', 'ubuntu'],
+-    'redhat': ['amazon', 'centos', 'fedora', 'rhel'],
++    'redhat': ['amazon', 'centos', 'fedora', 'rhel', 'rocky'],
+     'gentoo': ['gentoo'],
+     'freebsd': ['freebsd'],
+     'suse': ['opensuse', 'sles'],
+diff -Npruw cloud-init-19.4.orig/cloudinit/distros/rocky.py cloud-init-19.4/cloudinit/distros/rocky.py
+--- cloud-init-19.4.orig/cloudinit/distros/rocky.py	1970-01-01 00:00:00.000000000 +0000
++++ cloud-init-19.4/cloudinit/distros/rocky.py	2019-12-18 15:14:55.000000000 +0000
+@@ -0,0 +1,12 @@
++# This file is part of cloud-init. See LICENSE file for license information.
++
++from cloudinit.distros import rhel
++from cloudinit import log as logging
++
++LOG = logging.getLogger(__name__)
++
++
++class Distro(rhel.Distro):
++    pass
++
++# vi: ts=4 expandtab
+diff -Npruw cloud-init-19.4.orig/cloudinit/net/sysconfig.py cloud-init-19.4/cloudinit/net/sysconfig.py
+--- cloud-init-19.4.orig/cloudinit/net/sysconfig.py	2021-02-23 14:22:31.166416069 +0000
++++ cloud-init-19.4/cloudinit/net/sysconfig.py	2021-02-23 15:09:54.547943855 +0000
+@@ -18,7 +18,7 @@ from .network_state import (
+ 
+ LOG = logging.getLogger(__name__)
+ NM_CFG_FILE = "/etc/NetworkManager/NetworkManager.conf"
+-KNOWN_DISTROS = ['centos', 'fedora', 'rhel', 'suse']
++KNOWN_DISTROS = ['centos', 'fedora', 'rhel', 'rocky', 'suse']
+ 
+ 
+ def _make_header(sep='#'):
+diff -Npruw cloud-init-19.4.orig/cloudinit/sources/DataSourceRbxCloud.py cloud-init-19.4/cloudinit/sources/DataSourceRbxCloud.py
+--- cloud-init-19.4.orig/cloudinit/sources/DataSourceRbxCloud.py	2019-12-18 15:14:55.000000000 +0000
++++ cloud-init-19.4/cloudinit/sources/DataSourceRbxCloud.py	2021-02-23 15:09:13.946187259 +0000
+@@ -52,7 +52,7 @@ def _sub_arp(cmd):
+ 
+ def gratuitous_arp(items, distro):
+     source_param = '-S'
+-    if distro.name in ['fedora', 'centos', 'rhel']:
++    if distro.name in ['fedora', 'centos', 'rhel', 'rocky']:
+         source_param = '-s'
+     for item in items:
+         _sub_arp([
+diff -Npruw cloud-init-19.4.orig/cloudinit/util.py cloud-init-19.4/cloudinit/util.py
+--- cloud-init-19.4.orig/cloudinit/util.py	2021-02-23 14:22:31.141415841 +0000
++++ cloud-init-19.4/cloudinit/util.py	2021-02-23 15:18:11.014195331 +0000
+@@ -672,7 +672,7 @@ def system_info():
+     if system == "linux":
+         linux_dist = info['dist'][0].lower()
+         if linux_dist in (
+-                'arch', 'centos', 'debian', 'fedora', 'rhel', 'suse'):
++                'arch', 'centos', 'debian', 'fedora', 'rhel', 'rocky', 'suse'):
+             var = linux_dist
+         elif linux_dist in ('ubuntu', 'linuxmint', 'mint'):
+             var = 'ubuntu'
+diff -Npruw cloud-init-19.4.orig/config/cloud.cfg.tmpl cloud-init-19.4/config/cloud.cfg.tmpl
+--- cloud-init-19.4.orig/config/cloud.cfg.tmpl	2021-02-23 14:22:31.158415996 +0000
++++ cloud-init-19.4/config/cloud.cfg.tmpl	2021-02-23 15:19:14.295374548 +0000
+@@ -21,7 +21,7 @@ disable_root: false
+ disable_root: true
+ {% endif %}
+ 
+-{% if variant in ["centos", "fedora", "rhel"] %}
++{% if variant in ["centos", "fedora", "rhel", "rocky"] %}
+ mount_default_fields: [~, ~, 'auto', 'defaults,nofail', '0', '2']
+ resize_rootfs_tmp: /dev
+ ssh_pwauth:   0
+@@ -139,7 +139,7 @@ cloud_final_modules:
+ # (not accessible to handlers/transforms)
+ system_info:
+    # This will affect which distro class gets used
+-{% if variant in ["arch", "centos", "debian", "fedora", "freebsd", "rhel", "suse", "ubuntu"] %}
++{% if variant in ["arch", "centos", "debian", "fedora", "freebsd", "rhel", "rocky", "suse", "ubuntu"] %}
+    distro: {{ variant }}
+ {% else %}
+    # Unknown/fallback distro.
+@@ -187,7 +187,7 @@ system_info:
+          primary: http://ports.ubuntu.com/ubuntu-ports
+          security: http://ports.ubuntu.com/ubuntu-ports
+    ssh_svcname: ssh
+-{% elif variant in ["arch", "centos", "fedora", "rhel", "suse"] %}
++{% elif variant in ["arch", "centos", "fedora", "rhel", "rocky", "suse"] %}
+    # Default user name + that default users groups (if added/used)
+    default_user:
+      name: {{ variant }}
+diff -Npruw cloud-init-19.4.orig/doc/rtd/topics/availability.rst cloud-init-19.4/doc/rtd/topics/availability.rst
+--- cloud-init-19.4.orig/doc/rtd/topics/availability.rst	2019-12-18 15:14:55.000000000 +0000
++++ cloud-init-19.4/doc/rtd/topics/availability.rst	2021-02-23 15:19:41.916889268 +0000
+@@ -19,7 +19,7 @@ FreeBSD:
+ 
+ - Ubuntu
+ - SLES/openSUSE
+-- RHEL/CentOS
++- RHEL/CentOS/Rocky
+ - Fedora
+ - Gentoo Linux
+ - Debian
+diff -Npruw cloud-init-19.4.orig/Makefile cloud-init-19.4/Makefile
+--- cloud-init-19.4.orig/Makefile	2019-12-18 15:14:55.000000000 +0000
++++ cloud-init-19.4/Makefile	2021-02-23 14:28:06.838476635 +0000
+@@ -59,6 +59,9 @@ ci-deps-ubuntu:
+ ci-deps-centos:
+ 	@$(PYVER) $(CWD)/tools/read-dependencies --distro centos --test-distro
+ 
++ci-deps-rocky:
++	@$(PYVER) $(CWD)/tools/read-dependencies --distro rocky --test-distro
++
+ pip-requirements:
+ 	@echo "Installing cloud-init dependencies..."
+ 	$(PIP_INSTALL) -r "$@.txt" -q
+diff -Npruw cloud-init-19.4.orig/README.md cloud-init-19.4/README.md
+--- cloud-init-19.4.orig/README.md	2019-12-18 15:14:55.000000000 +0000
++++ cloud-init-19.4/README.md	2021-02-23 14:31:16.380204828 +0000
+@@ -39,7 +39,7 @@ get in contact with that distribution an
+ 
+ | Supported OSes | Supported Public Clouds | Supported Private Clouds |
+ | --- | --- | --- |
+-| Ubuntu<br />SLES/openSUSE<br />RHEL/CentOS<br />Fedora<br />Gentoo Linux<br />Debian<br />ArchLinux<br />FreeBSD<br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /> | Amazon Web Services<br />Microsoft Azure<br />Google Cloud Platform<br />Oracle Cloud Infrastructure<br />Softlayer<br />Rackspace Public Cloud<br />IBM Cloud<br />Digital Ocean<br />Bigstep<br />Hetzner<br />Joyent<br />CloudSigma<br />Alibaba Cloud<br />OVH<br />OpenNebula<br />Exoscale<br />Scaleway<br />CloudStack<br />AltCloud<br />SmartOS<br /> | Bare metal installs<br />OpenStack<br />LXD<br />KVM<br />Metal-as-a-Service (MAAS)<br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br />|
++| Ubuntu<br />SLES/openSUSE<br />RHEL/CentOS/Rocky<br />Fedora<br />Gentoo Linux<br />Debian<br />ArchLinux<br />FreeBSD<br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /> | Amazon Web Services<br />Microsoft Azure<br />Google Cloud Platform<br />Oracle Cloud Infrastructure<br />Softlayer<br />Rackspace Public Cloud<br />IBM Cloud<br />Digital Ocean<br />Bigstep<br />Hetzner<br />Joyent<br />CloudSigma<br />Alibaba Cloud<br />OVH<br />OpenNebula<br />Exoscale<br />Scaleway<br />CloudStack<br />AltCloud<br />SmartOS<br /> | Bare metal installs<br />OpenStack<br />LXD<br />KVM<br />Metal-as-a-Service (MAAS)<br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br />|
+ 
+ ## To start developing cloud-init
+ 
+diff -Npruw cloud-init-19.4.orig/systemd/cloud-init-generator.tmpl cloud-init-19.4/systemd/cloud-init-generator.tmpl
+--- cloud-init-19.4.orig/systemd/cloud-init-generator.tmpl	2021-02-23 14:22:31.127415713 +0000
++++ cloud-init-19.4/systemd/cloud-init-generator.tmpl	2021-02-23 15:21:36.638027056 +0000
+@@ -83,7 +83,7 @@ default() {
+ 
+ check_for_datasource() {
+     local ds_rc=""
+-{% if variant in ["rhel", "fedora", "centos"] %}
++{% if variant in ["rhel", "fedora", "centos", "rocky"] %}
+     local dsidentify="/usr/libexec/cloud-init/ds-identify"
+ {% else %}
+     local dsidentify="/usr/lib/cloud-init/ds-identify"
+diff -Npruw cloud-init-19.4.orig/tools/read-dependencies cloud-init-19.4/tools/read-dependencies
+--- cloud-init-19.4.orig/tools/read-dependencies	2021-02-23 14:22:31.180416196 +0000
++++ cloud-init-19.4/tools/read-dependencies	2021-02-23 15:39:23.455775388 +0000
+@@ -24,6 +24,7 @@ DEFAULT_REQUIREMENTS = 'requirements.txt
+ DISTRO_PKG_TYPE_MAP = {
+     'centos': 'redhat',
+     'redhat': 'redhat',
++    'rocky': 'redhat',
+     'debian': 'debian',
+     'ubuntu': 'debian',
+     'opensuse': 'suse',
+@@ -58,11 +59,13 @@ ZYPPER_INSTALL = [
+ DRY_DISTRO_INSTALL_PKG_CMD = {
+     'centos': ['yum', 'install', '--assumeyes'],
+     'redhat': ['yum', 'install', '--assumeyes'],
++    'rocky': ['yum', 'install', '--assumeyes'],
+ }
+ 
+ DISTRO_INSTALL_PKG_CMD = {
+     'centos': MAYBE_RELIABLE_YUM_INSTALL,
+     'redhat': MAYBE_RELIABLE_YUM_INSTALL,
++    'rocky': MAYBE_RELIABLE_YUM_INSTALL,
+     'debian': ['apt', 'install', '-y'],
+     'ubuntu': ['apt', 'install', '-y'],
+     'opensuse': ZYPPER_INSTALL,
+@@ -75,6 +78,7 @@ CI_SYSTEM_BASE_PKGS = {
+     'common': ['make', 'sudo', 'tar'],
+     'redhat': ['python-tox'],
+     'centos': ['python-tox'],
++    'rocky': ['python-tox'],
+     'ubuntu': ['devscripts', 'python3-dev', 'libssl-dev', 'tox', 'sbuild'],
+     'debian': ['devscripts', 'python3-dev', 'libssl-dev', 'tox', 'sbuild']}
+ 
+@@ -259,9 +263,9 @@ def pkg_install(pkg_list, distro, test_d
+     install_cmd.extend(cmd)
+ 
+     if distro in ['centos', 'redhat']:
+-        # CentOS and Redhat need epel-release to access oauthlib and jsonschema
++        # CentOS and Redhat (not Rocky) need epel-release to access oauthlib and jsonschema
+         subprocess.check_call(install_cmd + ['epel-release'])
+-    if distro in ['suse', 'opensuse', 'redhat', 'centos']:
++    if distro in ['suse', 'opensuse', 'redhat', 'centos', 'rocky']:
+         pkg_list.append('rpm-build')
+     subprocess.check_call(install_cmd + pkg_list)
+ 
