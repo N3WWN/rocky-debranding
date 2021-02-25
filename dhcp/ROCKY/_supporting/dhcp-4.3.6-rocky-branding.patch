@@ -11,17 +11,3 @@ index 18f77cf..9234121 100644
  +
  +    if (!file)
  +        return url;
-diff --git a/SPECS/dhcp.spec b/SPECS/dhcp.spec
-index b626826..d55cfdc 100644
---- a/SPECS/dhcp.spec
-+++ b/SPECS/dhcp.spec
-@@ -694,6 +694,9 @@ done
- %endif
- 
- %changelog
-+* Mon Feb 22 2021 Rich Alloway <ralloway@perforce.com> - 4.3.6-41.el8.rocky
-+- Apply Rocky Linux (de)branding changes
-+
- * Tue Nov 03 2020 CentOS Sources <bugs@centos.org> - 4.3.6-41.el8.centos
- - Apply debranding changes
- 
